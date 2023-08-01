@@ -1,16 +1,19 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
-import ClientRegisterValidator from "App/Validators/Clients/ClientRegisterValidator";
 import CreateOrderUseCase from "App/UseCases/Orders/CreateOrderUseCase";
 import { inject } from "@adonisjs/fold";
 import CreateOrderValidator from "App/Validators/Orders/CreateOrderValidator";
-import * as console from "console";
+import GetClientOrdersUseCase from "App/UseCases/Orders/GetClientOrdersUseCase";
+import Order from "App/Models/Order";
 
 @inject()
 export default class OrderController {
-  constructor(private createOrderUseCase: CreateOrderUseCase) {
+  constructor(
+    private createOrderUseCase: CreateOrderUseCase,
+    private getClientOrdersUseCase: GetClientOrdersUseCase
+  ) {
   }
 
-  public async create({ request }: HttpContextContract): Promise<any> {
+  public async create({ request }: HttpContextContract): Promise<CreatedClientOrderContract> {
     return await this.createOrderUseCase.execute({
       ...await request.validate(CreateOrderValidator),
       ...{
@@ -19,8 +22,10 @@ export default class OrderController {
     });
   }
 
-  public async get({ request }: HttpContextContract) {
-    console.log(request);
-    return await request.validate(ClientRegisterValidator);
+  public async get({ request }: HttpContextContract): Promise<Order[]> {
+    return await this.getClientOrdersUseCase.execute(
+      request.param("restaurantId"),
+      request.qs().page,
+    );
   }
 }

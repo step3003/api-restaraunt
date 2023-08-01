@@ -16,21 +16,26 @@ export default class OrderService {
     const mappedDishes: any = dishes.map((orderDish: ClientOrderDish) => ({
       [orderDish.getId()]: {
         price: orderDish.getPrice(),
-        count: orderDish.getCount(),
+        count: orderDish.getCount()
       }
     }));
 
     const syncObject = Object.assign({}, ...mappedDishes);
 
-    return await order.related('dishes').sync(syncObject);
+    return await order.related("dishes").sync(syncObject);
   }
 
-  public async getByRestaurantIdAndClientId(restaurantId: number, clientId: number) {
+  public async getByRestaurantIdAndClientId(
+    restaurantId: number,
+    clientId: number,
+    currentPage: number | undefined
+  ): Promise<any> {
     return Order.query()
-      .where('client_id', clientId)
-      .whereHas('table', (postsQuery) => {
-      postsQuery.where('table.restaurant_id', restaurantId)
-    });
+      .where("client_id", clientId)
+      .whereHas("table", (postsQuery) => {
+        postsQuery.where("restaurant_id", restaurantId);
+      })
+      .paginate(currentPage ?? 1, 10);
   }
 
   public async find(restaurantId: number) {
